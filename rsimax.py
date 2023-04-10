@@ -17,7 +17,7 @@ DELAYED_BUY = 0
 
 DEFAULT_PERIOD = "5d"
 DEFAULT_INTERVAL = "1m"
-TIME_TOLERANCE = datetime.timedelta(minutes=5)
+TIME_TOLERANCE = datetime.timedelta(minutes=15)
 
 RSIMAX_ID = "-Vtr_AKsAwKBKnYJhWyaT"
 UNALLOCATED = "ubfhvYUsgvMIuJPwr76My"
@@ -91,7 +91,7 @@ def update() :
     stock_data = []
 
     for stock in stocks :
-        data = bb.get_history(stock) #Should be pulling data from same source, however AlphaInsider is not great history data as of now
+        data = bb.get_history(stock, interval=15) #Should be pulling data from same source, however AlphaInsider is not great history data as of now
         # if error post?
         data = data.iloc[::-1].reset_index(drop=True)
         data = rsimax_strategy(data)
@@ -130,4 +130,5 @@ def update() :
             print(f"Selling {stocks[i]} {stock_balance} @ {data.loc[holding.__len__()-1, 'Close']}")
             return ai.sellPosition(RSIMAX_ID, ids[i], stock_balance)
             
+ai.deleteAllOrders(RSIMAX_ID)
 update()
