@@ -22,6 +22,8 @@ TIME_TOLERANCE = datetime.timedelta(minutes=15)
 RSIMAX_ID = "-Vtr_AKsAwKBKnYJhWyaT"
 UNALLOCATED = "ubfhvYUsgvMIuJPwr76My"
 
+BYBIT_AMOUNT = 0.5 
+
 BTC = "BTCUSDT"
 ETH = "ETHUSDT"
 MATIC = "MATICUSDT"
@@ -110,12 +112,20 @@ def update() :
         shouldHold = holding[holding.__len__()-1]#data.loc[holding.__len__()-1, 'Holding']
 
         stock_balance = ai.getPositionBalance(RSIMAX_ID, ids[i])
+        
         if stock_balance > 0 :
             isHolding = True
         else :
             isHolding = False
 
-        # print(f"Holding {stocks[i]}:{isHolding}, Should Hold: {shouldHold}")
+        bb_balance = float(bb.get_asset('ETH')['free'])
+
+        if bb_balance > 0 :
+            bbHolding = True
+        else :
+            bbHolding = False
+
+        print(f"Holding {stocks[i]}:{bbHolding}, Should Hold: {shouldHold}")
         for j in range(0, DELAYED_BUY) :
             index = holding.__len__() -1 - j
 
@@ -123,12 +133,26 @@ def update() :
                 break
         else:
             if shouldHold and not isHolding:
+                ai.buyPosition(RSIMAX_ID, ids[i], amount_buy)
+            if shouldHold and not bbHolding:
                 print(f"Buying {stocks[i]} {amount_buy} @ {data.loc[holding.__len__()-1, 'Close']}")
-                return ai.buyPosition(RSIMAX_ID, ids[i], amount_buy)
-                
         if not shouldHold and isHolding:
+            ai.sellPosition(RSIMAX_ID, ids[i], stock_balance)
+        if not shouldHold and bbHolding:
             print(f"Selling {stocks[i]} {stock_balance} @ {data.loc[holding.__len__()-1, 'Close']}")
-            return ai.sellPosition(RSIMAX_ID, ids[i], stock_balance)
-            
+            bb_order = bb.sell_order(BYBIT_AMOUNT*bb_balance, "ETHUSDT")
+            print(bb_order.content)
+
+def updateBB():
+    data = bb.get_history("ETHUSDT", interval=15)
+    # if error post?
+    data = data.iloc[::-1].reset_index(drop=True)
+    data = rsimax_strategy(data)
+
+    stocks = [BTC]
+    ids = ['ETH']
+    
+    
+        
 ai.deleteAllOrders(RSIMAX_ID)
 update()
