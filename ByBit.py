@@ -43,7 +43,7 @@ def generate_signature(api_secret, timeStamp, api_key, recv_window, post_params)
     signature = hash.hexdigest()
     return signature
 
-def get_history(symbol = DEFAULT_CHART, category = SPOT, interval = DEFAULT_INTERVAL):
+def get_history(symbol = DEFAULT_CHART, category = SPOT, interval = DEFAULT_INTERVAL, limit = 200):
     get_params = {
     'category' : category,
     'symbol' : symbol,
@@ -81,7 +81,7 @@ def get_price(symbol = DEFAULT_CHART) :
     return float(get_current(symbol)['lastPrice'])
 
 def get_assets(coinName = None, timeStamp = int(datetime.datetime.now().timestamp()*1000)) :
-    recv_window=str(5000)
+    recv_window=str(9000)
     # Required
     get_params = {
         'accountType':'SPOT',
@@ -120,7 +120,7 @@ def buy_order(amount, symbol = DEFAULT_CHART, category = "spot"):
     }
 
 def sell_order_old(amount, symbol = DEFAULT_CHART):
-    recv_window=str(5000)
+    recv_window=str(9000)
     timeStamp = int(datetime.datetime.now().timestamp()*1000)
 
     post_params = {
@@ -154,7 +154,7 @@ def sell_order(amount, symbol=DEFAULT_CHART):
         "orderType": "Market",
         "qty": str(amount)
     }
-    recv_window = str(5000)
+    recv_window = str(9000)
     timeStamp = int(datetime.datetime.now().timestamp() * 1000)
     payload_str = json.dumps(post_params, separators=(',',':'))
     param_str= f"{str(timeStamp)}{api_key}{recv_window}{payload_str}"
@@ -171,6 +171,3 @@ def sell_order(amount, symbol=DEFAULT_CHART):
     }
 
     return postRequest(POST_ORDER, body = post_params, header=headers)
-
-print(get_asset("ETH"))
-print(sell_order(0.005, "ETHUSDT").json())
